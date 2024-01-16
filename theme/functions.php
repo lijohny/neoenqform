@@ -144,15 +144,37 @@ add_action( 'widgets_init', 'neoenqform_widgets_init' );
 /**
  * Enqueue scripts and styles.
  */
+// function enqueue_jquery() {
+//     wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-3.6.4.min.js', array(), '3.6.4', true);
+// }
+
+// add_action('wp_enqueue_scripts', 'enqueue_jquery');
+
+
 function neoenqform_scripts() {
 	wp_enqueue_style( 'neoenqform-style', get_stylesheet_uri(), array(), NEOENQFORM_VERSION );
 	wp_enqueue_script( 'neoenqform-script', get_template_directory_uri() . '/js/script.min.js', array(), NEOENQFORM_VERSION, true );
-
+	wp_enqueue_script( 'neoenqformValidation-script', get_template_directory_uri() . '/js/form.js', array(), NEOENQFORM_VERSION, true );
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
 }
 add_action( 'wp_enqueue_scripts', 'neoenqform_scripts' );
+
+
+function ajax_form_scripts(){
+	$email_sending = array(
+		'ajax_url' => admin_url('admin-ajax.php'),
+		'security' => wp_create_nonce('form_submit'),
+	);
+
+	wp_localize_script('neoenqformValidation-script', 'emailSending_ajax', $email_sending);
+}
+add_action('wp_enqueue_scripts', 'ajax_form_scripts');
+
+add_action('wp_ajax_neo_send_email', 'neo_send_email');
+add_action('wp_ajax_nopriv_neo_send_email', 'neo_send_email'); 
+
 
 /**
  * Enqueue the block editor script.
@@ -168,6 +190,7 @@ function neoenqform_enqueue_block_editor_script() {
 		NEOENQFORM_VERSION,
 		true
 	);
+
 }
 add_action( 'enqueue_block_editor_assets', 'neoenqform_enqueue_block_editor_script' );
 
@@ -215,5 +238,10 @@ require get_template_directory() . '/inc/template-tags.php';
  */
 require get_template_directory() . '/inc/template-functions.php';
 
+// add_action('wp_enqueue_scripts', 'neoito_scripts');
 
-include("shortcode.php")?>
+
+
+include("shortcode.php");
+include("formvalidation.php")
+?>
