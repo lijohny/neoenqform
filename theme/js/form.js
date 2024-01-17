@@ -10,6 +10,7 @@ jQuery(function ($) {
         let phone = $('#phone').val().trim();
         let message = $('#message').val().trim();
 
+
         // Validate name
         if (name === '') {
             handleValidationError('#name', 'Name is required');
@@ -36,23 +37,30 @@ jQuery(function ($) {
             return;
         }
 
+        
         // If all validations pass, proceed with form submission
         const formData = {
-            name: name,
-            email: email,
-            phone: phone,
-            message: message
-        };
+            // name: name,
+            // email: email,
+            // phone: phone,
+            // message: message
 
+            name:"John Doe",
+            email:"john@example.com",
+            phone:"1234567890",
+            messag: "Hello, this is a test message",
+        };
+        // console.log(formData);
         $.ajax({
             url: emailSending_ajax.ajax_url,
             type: 'POST',
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+            // contentType:'text/plain',
             data: {
                 action: 'neo_send_email',
                 form_data: formData
             },
             success: function (response) {
-                // Handle success, you may want to display a success message or redirect
                 // window.location.href = "http://localhost/neoenqFrom/thankyou-page/";
                 console.log(response);
             },
@@ -61,6 +69,7 @@ jQuery(function ($) {
                 alert('An error occurred while submitting the form.');
             }
         });
+        
     }
 
     function handleValidationError(element, errorMessage) {
