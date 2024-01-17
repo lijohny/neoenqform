@@ -27,7 +27,7 @@
         } else {
             $response = array(
                 'status' => 'error',
-                'message' => "an error occured",
+                'message' =>  $email_body,
             );
         }
 

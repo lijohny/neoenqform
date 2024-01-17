@@ -26,7 +26,7 @@ function neo_contact_form_shortcode() {
         </div>
         <div class="mt-6">
             <?php wp_nonce_field('neo_contact_form', 'neo_contact_form_nonce'); ?>
-            <input type="submit" value="Submit"  class="w-full bg-[#f36d45] text-white p-2 rounded cursor-pointer">
+            <input type="submit" value="Submit"  class="w-full ease-in duration-300 bg-[#f36d45] hover:bg-white text-white hover:text-[#f36d45] border border-[#f36d45] p-2 rounded cursor-pointer">
         </div>
     </form>
 

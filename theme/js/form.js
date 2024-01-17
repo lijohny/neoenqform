@@ -40,15 +40,15 @@ jQuery(function ($) {
         
         // If all validations pass, proceed with form submission
         const formData = {
-            // name: name,
-            // email: email,
-            // phone: phone,
-            // message: message
+            name: name,
+            email: email,
+            phone: phone,
+            message: message
 
-            name:"John Doe",
-            email:"john@example.com",
-            phone:"1234567890",
-            messag: "Hello, this is a test message",
+            // name:"John Doe",
+            // email:"john@example.com",
+            // phone:"1234567890",
+            // messag: "Hello, this is a test message",
         };
         // console.log(formData);
         $.ajax({
@@ -61,7 +61,12 @@ jQuery(function ($) {
                 form_data: formData
             },
             success: function (response) {
-                // window.location.href = "http://localhost/neoenqFrom/thankyou-page/";
+                name = $('#name').val("");
+                email = $('#email').val("");
+                phone = $('#phone').val("");
+                message = $('#message').val("");
+                
+                window.location.href = "http://localhost/neoenqFrom/thankyou-page/";
                 console.log(response);
             },
             error: function () {
