@@ -162,19 +162,6 @@ function neoenqform_scripts() {
 add_action( 'wp_enqueue_scripts', 'neoenqform_scripts' );
 
 
-function ajax_form_scripts(){
-	$email_sending = array(
-		'ajax_url' => admin_url('admin-ajax.php'),
-		'security' => wp_create_nonce('form_submit'),
-	);
-
-	wp_localize_script('neoenqformValidation-script', 'emailSending_ajax', $email_sending);
-}
-add_action('wp_enqueue_scripts', 'ajax_form_scripts');
-
-add_action('wp_ajax_neo_send_email', 'neo_send_email');
-add_action('wp_ajax_nopriv_neo_send_email', 'neo_send_email'); 
-
 
 /**
  * Enqueue the block editor script.
@@ -216,6 +203,154 @@ function neoenqform_enqueue_typography_script() {
 }
 add_action( 'enqueue_block_assets', 'neoenqform_enqueue_typography_script' );
 
+
+
+/* 
+assesment code's start
+*/
+
+function ajax_form_scripts(){
+	$email_sending = array(
+		'ajax_url' => admin_url('admin-ajax.php'),
+		'security' => wp_create_nonce('form_submit'),
+	);
+
+	wp_localize_script('neoenqformValidation-script', 'emailSending_ajax', $email_sending);
+}
+add_action('wp_enqueue_scripts', 'ajax_form_scripts');
+
+
+
+
+add_action('wp_ajax_neo_send_email', 'neo_send_email');
+add_action('wp_ajax_nopriv_neo_send_email', 'neo_send_email'); 
+
+function neo_send_email() {
+	parse_str(file_get_contents('php://input'),$data);
+	$name = $data['form_data']['name'];
+	$email = $data['form_data']['email'];
+	$phone = $data['form_data']['phone'];
+	$message = $data['form_data']['message'];
+	if (!is_email($email)) {
+			$response = array(
+					'status' => 'error',
+					'message' => 'Invalid email address',
+			);
+	} else {
+			$to = 'lijo@neoito.com';
+			$subject = 'New Form Submission';
+			$email_body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage: $message";
+			$headers = 'From: ' . $email;
+			$sent = wp_mail($to, $subject, $email_body, $headers);
+			if ($sent) {
+					$response = array(
+							'status' => 'success',
+							'message' => 'Email sent successfully',
+					);
+			} else {
+					$response = array(
+							'status' => 'error',
+							'message' => "Email was not sent an error occured",
+					);
+					neo_save_form_entries();
+			}
+	}
+	header('Content-Type: application/json');
+	echo json_encode($response);
+	wp_die();
+}
+
+function neo_save_form_entries() {
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        parse_str(file_get_contents('php://input'), $data);
+        $name = $data['form_data']['name'];
+        $email = $data['form_data']['email'];
+        $phone = $data['form_data']['phone'];
+        $message = $data['form_data']['message'];
+
+        $content_body = "Name: $name\nEmail: $email\nPhone: $phone\nMessage: $message";
+
+        $post_data = array(
+            'post_title'   => $name,
+            'post_content' => $content_body,
+            'post_type'    => 'neo_enquiries',
+            'post_status'  => 'publish',
+        );
+
+        $post_id = wp_insert_post($post_data);
+    }
+}
+
+add_action('template_redirect', 'neo_handle_form_submission');
+
+function neo_handle_form_submission() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['neo_contact_form_nonce'])) {
+        if (wp_verify_nonce($_POST['neo_contact_form_nonce'], 'neo_contact_form')) {
+            neo_send_email();
+            neo_save_form_entries();
+        }
+    }
+}
+
+
+include("shortcode.php");
+
+function neo_register_enquiries_post_type() {
+    $labels = array(
+        'name'                  => 'Neo Enquiries',
+        'singular_name'         => 'Neo Enquiry',
+        'menu_name'             => 'Neo Enquiries',
+        'add_new'               => 'Add New',
+        'add_new_item'          => 'Add New Neo Enquiry',
+        'edit_item'             => 'Edit Neo Enquiry',
+        'new_item'              => 'New Neo Enquiry',
+        'view_item'             => 'View Neo Enquiry',
+        'search_items'          => 'Search Neo Enquiries',
+        'not_found'             => 'No Neo Enquiries found',
+        'not_found_in_trash'    => 'No Neo Enquiries found in Trash',
+        'parent_item_colon'     => 'Parent Neo Enquiry:',
+        'all_items'             => 'All Neo Enquiries',
+        'archives'              => 'Neo Enquiry Archives',
+        'insert_into_item'      => 'Insert into Neo Enquiry',
+        'uploaded_to_this_item' => 'Uploaded to this Neo Enquiry',
+        'featured_image'        => 'Featured Image',
+        'set_featured_image'    => 'Set featured image',
+        'remove_featured_image' => 'Remove featured image',
+        'use_featured_image'    => 'Use as featured image',
+        'filter_items_list'     => 'Filter Neo Enquiries list',
+        'items_list_navigation' => 'Neo Enquiries list navigation',
+        'items_list'            => 'Neo Enquiries list',
+        'item_published'        => 'Neo Enquiry published',
+        'item_published_privately' => 'Neo Enquiry published privately',
+        'item_reverted_to_draft' => 'Neo Enquiry reverted to draft',
+        'item_scheduled'        => 'Neo Enquiry scheduled',
+        'item_updated'          => 'Neo Enquiry updated',
+    );
+    $args = array(
+			'label'                 => 'Neo Enquiries',
+			'description'           => 'Form enquiries',
+			'labels'                => $labels,
+			'public'                => false, 
+			'publicly_queryable'    => false, 
+			'show_ui'               => true,
+			'show_in_menu'          => true,
+			'query_var'             => true,
+			'rewrite'               => array('slug' => 'neo-enquiries'),
+			'capability_type'       => 'post',
+			'has_archive'           => false, 
+			'hierarchical'          => false,
+			'menu_position'         => null,
+			'supports'              => array('title', 'editor'),
+    );
+
+    register_post_type('neo_enquiries', $args);
+}
+add_action('init', 'neo_register_enquiries_post_type');
+
+/* 
+assesment code's end
+*/
+
 /**
  * Add the Tailwind Typography classes to TinyMCE.
  *
@@ -242,6 +377,6 @@ require get_template_directory() . '/inc/template-functions.php';
 
 
 
-include("shortcode.php");
-include("formvalidation.php")
+
+// include("formvalidation.php")
 ?>
